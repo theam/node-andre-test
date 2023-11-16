@@ -2,15 +2,18 @@
 name: Deploy UI to Azure AKS
 on:
   push:
-    branches: ["release", "main"]
+    branches: ["release", "main", "add-correct-cicd-wf"]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the env'
+        type: environment
+        required: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    environment: 'production'
-    env:
-      ENV_NAME: 'production'
+    environment: ${{ github.ref == 'main' && isEmpty(inputs.environment) && 'production' || 'production' }} # TODO: change last production to staging
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -37,15 +40,15 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v2.0
         with:
-          envkey_VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          envkey_VITE_AUTH0_STATUS: ${{ secrets.VITE_AUTH0_STATUS }}
+          envkey_VITE_API_URL: ${{ vars.VITE_API_URL }}
+          envkey_VITE_AUTH0_STATUS: ${{ vars.VITE_AUTH0_STATUS }}
           envkey_VITE_AUTH0_DOMAIN: ${{ secrets.VITE_AUTH0_DOMAIN }}
           envkey_VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
           envkey_VITE_AUTH0_AUDIENCE: ${{ secrets.VITE_AUTH0_AUDIENCE }}
-          file_name: .env.${{ env.ENV_NAME }}
+          file_name: .env.${{ inputs.environment }}
 
       - name: Build
-        run: npm run build:${{ env.ENV_NAME }}
+        run: npm run build:${{ inputs.environment }}
 
       - name: Upload to blob storage
         uses: azure/CLI@v1
@@ -58,7 +61,6 @@ jobs:
               --destination-path ${{vars.APPLICATION_NAME}} \
               --overwrite
 
-      # We have to use the replica trick since our nodes only have 1 GPU
       - name: Kubernetes Deployment
         run: |
             kubectl -n ${{vars.KUBERNETES_NAMESPACE}} rollout restart deployment/${{vars.APPLICATION_NAME}}
