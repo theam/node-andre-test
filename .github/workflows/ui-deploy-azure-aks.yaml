@@ -10,10 +10,12 @@ on:
         type: environment
         required: true
 
+env:
+  ENVIRONMENT: ${{ github.ref_name == 'main' && inputs.environment == '' && 'production' || 'production' }} # TODO: change last production to staging
 jobs:
   run:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'main' && inputs.environment == '' && 'production' || 'production' }} # TODO: change last production to staging
+    environment: ${{ github.ref_name == 'main' && inputs.environment == '' && 'production' || 'production' }} # TODO: change last production to staging
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -45,10 +47,10 @@ jobs:
           envkey_VITE_AUTH0_DOMAIN: ${{ secrets.VITE_AUTH0_DOMAIN }}
           envkey_VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
           envkey_VITE_AUTH0_AUDIENCE: ${{ secrets.VITE_AUTH0_AUDIENCE }}
-          file_name: .env.${{ inputs.environment }}
+          file_name: .env.${{ env.ENVIRONMENT }}
 
       - name: Build
-        run: npm run build:${{ inputs.environment }}
+        run: npm run build:${{ env.ENVIRONMENT }}
 
       - name: Upload to blob storage
         uses: azure/CLI@v1
