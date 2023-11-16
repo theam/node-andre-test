@@ -13,7 +13,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'main' && isEmpty(inputs.environment) && 'production' || 'production' }} # TODO: change last production to staging
+    environment: ${{ github.ref == 'main' && inputs.environment == '' && 'production' || 'production' }} # TODO: change last production to staging
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
