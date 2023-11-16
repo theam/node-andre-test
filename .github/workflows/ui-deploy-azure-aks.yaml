@@ -1,0 +1,65 @@
+#
+name: Deploy UI to Azure AKS
+on:
+  push:
+    branches: ["release", "main"]
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: 'production'
+    env:
+      ENV_NAME: 'production'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - uses: azure/login@v1
+        with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up AKS context
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name:  ${{vars.CLUSTER_NAME}}
+          resource-group: ${{vars.AZURE_RESOURCE_GROUP}}
+
+      - name: Remove package-lock.json
+        run: rm -rf package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          envkey_VITE_AUTH0_STATUS: ${{ secrets.VITE_AUTH0_STATUS }}
+          envkey_VITE_AUTH0_DOMAIN: ${{ secrets.VITE_AUTH0_DOMAIN }}
+          envkey_VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
+          envkey_VITE_AUTH0_AUDIENCE: ${{ secrets.VITE_AUTH0_AUDIENCE }}
+          file_name: .env.${{ env.ENV_NAME }}
+
+      - name: Build
+        run: npm run build:${{ env.ENV_NAME }}
+
+      - name: Upload to blob storage
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az storage blob upload-batch \
+              --destination  ${{vars.AZURE_CONTAINER_BLOB}} \
+              --account-name ${{vars.AZURE_CONTAINER_ACCOUNT}} \
+              --source ./dist \
+              --destination-path ${{vars.APPLICATION_NAME}} \
+              --overwrite
+
+      # We have to use the replica trick since our nodes only have 1 GPU
+      - name: Kubernetes Deployment
+        run: |
+            kubectl -n ${{vars.KUBERNETES_NAMESPACE}} rollout restart deployment/${{vars.APPLICATION_NAME}}
+#

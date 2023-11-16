@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: node-andre-test
+  description: "test"
+  annotations:
+    github.com/project-slug: theam/node-andre-test
+    backstage.io/adr-location: docs/adrs
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: website
+  lifecycle: experimental
+  owner: group:default/alden-core
+  # providesApis:
+  #   - node-andre-test-api

@@ -1,0 +1,63 @@
+@import 'primereact/resources/themes/saga-blue/theme.css';
+@import 'primereact/resources/primereact.min.css';
+@import 'primeicons/primeicons.css';
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Cormorant+Garamond:wght@300&family=Montserrat:wght@400;700&display=swap');
+
+.app-highlight {
+  /* -webkit-animation: 1.5s highlight 0.5s 1 normal forwards;
+          animation: 1.5s highlight 0.5s 1 normal forwards;
+  background-color: none;
+  background: linear-gradient(90deg, #FBE8E8 50%, rgba(255, 255, 255, 0) 50%);
+  background-size: 200% 100%;
+  background-position: 100% 0; */
+  background-color: #FBE8E8;
+}
+
+@-webkit-keyframes highlight {
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes highlight {
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+      transform: translate3d(0,20px,0)
+  }
+
+  to {
+      transform: translate3d(0,0,0);
+      opacity: 1
+  }
+}
+
+@-webkit-keyframes fadeInUp {
+  from {
+      transform: translate3d(0,20px,0)
+  }
+
+  to {
+      transform: translate3d(0,0,0);
+      opacity: 1
+  }
+}
+
+.fade-in-up {
+  animation-duration: 500ms;
+  animation-fill-mode: both;
+  -webkit-animation-duration: 500ms;
+  -webkit-animation-fill-mode: both;
+  opacity: 0;
+  animation-name: fadeInUp;
+  -webkit-animation-name: fadeInUp;
+}
